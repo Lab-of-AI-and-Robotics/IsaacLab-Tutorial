@@ -127,6 +127,7 @@ class RewardsCfg:
     cart_vel = RewTerm(
         func=mdp.joint_vel_l1,
         weight=-0.01,
+        # weight=-2.0, ### in this case, the cart will move too slow and cannot reach the goal
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"])},
     )
     # (5) Shaping tasks: lower pole angular velocity

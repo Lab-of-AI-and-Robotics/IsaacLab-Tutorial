@@ -1,3 +1,6 @@
+# Add this import at the top
+from .actions.custom_actions import FootSpaceIKAction, FootSpaceIKActionCfg
+
 # 1. Add these required imports
 from isaaclab.utils import configclass
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
@@ -5,8 +8,21 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 # Add this import for the Go2 asset
 from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
 
+
+# Find and replace the existing ActionsCfg class with this
+@configclass
+class ActionsCfg:
+    """Action specifications for the MDP."""
+    # Create the config object
+    foot_ik = FootSpaceIKActionCfg(asset_name="robot", scale=0.1)
+    # Explicitly assign the implementation class to the 'class_type' field
+    foot_ik.class_type = FootSpaceIKAction
+
+
 @configclass
 class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
+    actions: ActionsCfg = ActionsCfg() # Make sure this line exists or is added
+
     def __post_init__(self):
         # Call the parent's post_init method first
         super().__post_init__()
@@ -24,10 +40,6 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.observations.policy.height_scan = None
         # Disable the terrain curriculum
         self.curriculum.terrain_levels = None
-
-        #-- Action Configuration
-        # Set the scale for joint position actions
-        self.actions.joint_pos.scale = 0.25
 
         #-- Event Configuration
         # Configure the robot's initial state randomization

@@ -15,7 +15,6 @@ HIP_OFFSETS = torch.tensor([
 ], dtype=torch.float64).unsqueeze(0)
 
 # --- Kinematics Solvers ---
-
 def go2_fk(joint_angles: torch.Tensor, hip_offsets: torch.Tensor) -> torch.Tensor:
     """Calculates foot positions in the base frame from joint angles."""
     batch_size = joint_angles.size(0)

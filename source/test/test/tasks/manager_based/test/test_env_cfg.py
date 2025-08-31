@@ -17,13 +17,16 @@ import isaaclab.envs.mdp as mdp
 class ActionsCfg:
     """Action specifications for the MDP."""
     # Create the config object
-    foot_ik = FootSpaceIKActionCfg(asset_name="robot", scale=0.1)
+    foot_ik = FootSpaceIKActionCfg(asset_name="robot", scale=0.05)
     # Explicitly assign the implementation class to the 'class_type' field
     foot_ik.class_type = FootSpaceIKAction
 
 
 @configclass
 class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
+    # This single line is the critical switch that activates our custom controller.
+    actions: ActionsCfg = ActionsCfg()
+
     def __post_init__(self):
         # 1. Call the parent's post_init method first
         super().__post_init__()
@@ -31,6 +34,10 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
         #-- Scene Configuration
         # Replace the Cartpole with the Go2 robot
         self.scene.robot = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+
+        # Set the initial joint positions to the stable pose
+        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
+
         # Change terrain to a flat plane for faster training
         self.scene.terrain.terrain_type = "plane"
         self.scene.terrain.terrain_generator = None
@@ -75,6 +82,7 @@ class TestEnvCfg_PLAY(TestEnvCfg):
     def __post_init__(self):
         # First, inherit all settings from the training config
         super().__post_init__()
+
 
         # --- Settings to override for playing ---
         # make a smaller scene for play

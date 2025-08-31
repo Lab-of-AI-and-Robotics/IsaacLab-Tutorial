@@ -8,6 +8,9 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 # Add this import for the Go2 asset
 from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
 
+# Add EventTermCfg to the list of imports from isaaclab.managers
+from isaaclab.managers import EventTermCfg
+import isaaclab.envs.mdp as mdp
 
 # Find and replace the existing ActionsCfg class with this
 @configclass
@@ -21,10 +24,8 @@ class ActionsCfg:
 
 @configclass
 class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
-    actions: ActionsCfg = ActionsCfg() # Make sure this line exists or is added
-
     def __post_init__(self):
-        # Call the parent's post_init method first
+        # 1. Call the parent's post_init method first
         super().__post_init__()
 
         #-- Scene Configuration
@@ -40,6 +41,10 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.observations.policy.height_scan = None
         # Disable the terrain curriculum
         self.curriculum.terrain_levels = None
+
+        # #-- Action Configuration
+        # # Set the scale for joint position actions
+        # self.actions.joint_pos.scale = 0.25
 
         #-- Event Configuration
         # Configure the robot's initial state randomization
@@ -57,6 +62,8 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
         self.rewards.feet_air_time.weight = 0.01
         self.rewards.undesired_contacts = None # From previous fix
+        # self.rewards.base_height_l2.weight = -1.0
+        # self.rewards.flat_orientation_l2.weight = -0.5
 
         #-- Termination Configuration
         # The episode ends if the robot's base hits the ground

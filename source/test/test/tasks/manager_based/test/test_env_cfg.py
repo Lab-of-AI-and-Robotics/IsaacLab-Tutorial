@@ -1,95 +1,149 @@
-# Add this import at the top
+# Copyright (c) 2022-2025, The Isaac Lab Project Developers. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+# ==== Tutorial-specific Imports ====
+# Chapter 6: Import the custom action controller we created.
 from .actions.custom_actions import FootSpaceIKAction, FootSpaceIKActionCfg
 
-# 1. Add these required imports
+# ==== Isaac Lab Foundation Imports ====
+# Utility for creating configuration classes.
 from isaaclab.utils import configclass
+# The base environment class we are inheriting from.
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
-
-# Add this import for the Go2 asset
+# The asset configuration for the Unitree Go2 robot.
 from isaaclab_assets.robots.unitree import UNITREE_GO2_CFG
 
-# Add EventTermCfg to the list of imports from isaaclab.managers
-from isaaclab.managers import EventTermCfg
+# ==== Isaac Lab Manager & MDP Imports ====
+# Import various configuration objects for defining the environment.
+from isaaclab.managers import EventTermCfg, SceneEntityCfg
+from isaaclab.managers import RewardTermCfg as RewTerm
+# Import the library of standard reward and MDP functions.
 import isaaclab.envs.mdp as mdp
+# Chapter 7: Import the base RewardsCfg to inherit from it.
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import RewardsCfg as BaseRewardsCfg
 
-# Find and replace the existing ActionsCfg class with this
+
+#
+# -- Custom Action Configuration (from Chapter 6)
+#
+
 @configclass
 class ActionsCfg:
-    """Action specifications for the MDP."""
-    # Create the config object
+    """Defines the custom action model for the Go2 robot."""
+    # Action term for the custom foot-space IK controller.
     foot_ik = FootSpaceIKActionCfg(asset_name="robot", scale=0.05)
-    # Explicitly assign the implementation class to the 'class_type' field
+    # Explicitly link the config to its implementation class.
     foot_ik.class_type = FootSpaceIKAction
 
 
+#
+# -- Custom Reward Configuration (from Chapter 7)
+#
+
+@configclass
+class RewardsCfg(BaseRewardsCfg):
+    """
+    Inherits from the base rewards class and customizes it for our task.
+    This class defines the "default" structure and weights for our rewards.
+    """
+    
+    # ==========================================================================
+    # Chapter 7 Additions: New terms for gait and posture shaping.
+    # ==========================================================================
+    # Penalize the base dropping too low to prevent the "spider-gait".
+    base_height_l2 = RewTerm(
+        func=mdp.base_height_l2, weight=-2.0, params={"target_height": 0.30}
+    )
+    # Penalize legs splaying out to encourage a more natural, narrow stance.
+    hip_deviation_l1 = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.5,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_ids=[0, 3, 6, 9])}
+    )
+    
+    # --- Overrides of Base Rewards ---
+    # Modify: Increase the penalty on motor torques for better energy efficiency.
+    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-0.0002)
+
+    # Remove: The feet_air_time reward is complex and not needed for a basic flat-terrain task.
+    feet_air_time = None
+
+
+#
+# -- Main Environment Configuration --
+#
+
 @configclass
 class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
-    # This single line is the critical switch that activates our custom controller.
+    """The main configuration for our Go2 locomotion tutorial experiment."""
+
+    # Override the base environment's actions and rewards with our custom classes.
     actions: ActionsCfg = ActionsCfg()
+    rewards: RewardsCfg = RewardsCfg()
 
     def __post_init__(self):
-        # 1. Call the parent's post_init method first
+        """Post-initialization to override specific parameters."""
+        # Always call the parent's post_init first.
         super().__post_init__()
 
-        #-- Scene Configuration
-        # Replace the Cartpole with the Go2 robot
+        # -- Scene Settings --
+        # Replace the default robot with our Unitree Go2 asset.
         self.scene.robot = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-
-        # Set the initial joint positions to the stable pose
-        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
-
-        # Change terrain to a flat plane for faster training
+        # Simplify the environment to a flat plane for focused, faster training.
         self.scene.terrain.terrain_type = "plane"
         self.scene.terrain.terrain_generator = None
-        # Remove the height scanner since the terrain is flat
+        # With a flat plane, the height scanner is no longer needed.
         self.scene.height_scanner = None
-        # Also remove height scan from observations
         if hasattr(self.observations.policy, "height_scan"):
             self.observations.policy.height_scan = None
-        # Disable the terrain curriculum
+        # We don't need a curriculum for terrain difficulty on a flat plane.
         self.curriculum.terrain_levels = None
 
-        # #-- Action Configuration
-        # # Set the scale for joint position actions
-        # self.actions.joint_pos.scale = 0.25
-
-        #-- Event Configuration
-        # Configure the robot's initial state randomization
+        # -- Event Settings --
+        # Randomize the robot's starting pose on each reset to improve robustness.
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
-            "velocity_range": {},  # Default to zero velocity
+            "velocity_range": {},  # Start from a standstill.
         }
+        # Always reset joints to their default stable pose.
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         
-        #-- Reward Configuration
-        # These weights are crucial for learning to walk!
+        # -- [WORKFLOW] Experiment-specific Reward Weight Overrides --
+        # This section acts as a "control panel" to quickly tune weights for this
+        # specific experiment, overriding the defaults set in the RewardsCfg class above.
         self.rewards.track_lin_vel_xy_exp.weight = 1.5
         self.rewards.track_ang_vel_z_exp.weight = 0.75
+        # Note: We are overriding the dof_torques_l2 weight again here.
+        # This takes final precedence.
         self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.01
-        self.rewards.undesired_contacts = None # From previous fix
-        # self.rewards.base_height_l2.weight = -1.0
-        # self.rewards.flat_orientation_l2.weight = -0.5
+        # We explicitly set undesired_contacts to None to ensure it's disabled.
+        self.rewards.undesired_contacts = None
+        # We override the base_height_l2 weight from our class default for this run.
+        self.rewards.base_height_l2.weight = -2.0
 
-        #-- Termination Configuration
-        # The episode ends if the robot's base hits the ground
+        # -- Termination Settings --
+        # End the episode if the robot's base/torso touches the ground.
         self.terminations.base_contact.params["sensor_cfg"].body_names = "base"
 
 
+#
+# -- Evaluation-time Configuration --
+#
+
 @configclass
 class TestEnvCfg_PLAY(TestEnvCfg):
+    """Configuration for playing and evaluating a trained policy."""
+
     def __post_init__(self):
-        # First, inherit all settings from the training config
+        # Inherit all settings from the training config first.
         super().__post_init__()
 
-
         # --- Settings to override for playing ---
-        # make a smaller scene for play
+        # Use a smaller number of environments for real-time visualization.
         self.scene.num_envs = 50
-        self.scene.env_spacing = 2.5
-        # disable randomization for play
+        # Disable all randomization for deterministic and consistent evaluation.
         self.observations.policy.enable_corruption = False
-        # remove random pushing event
+        # Remove random pushing events during play.
         self.events.base_external_force_torque = None
         self.events.push_robot = None

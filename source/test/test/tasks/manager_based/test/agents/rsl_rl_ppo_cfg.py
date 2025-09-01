@@ -13,7 +13,7 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 16
     max_iterations = 1 + 6000
     save_interval = 500
-    experiment_name = "go2_locomotion_chapter6"
+    experiment_name = "go2_locomotion_chapter7"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,

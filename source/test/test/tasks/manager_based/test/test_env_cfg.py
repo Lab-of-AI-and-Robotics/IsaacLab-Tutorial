@@ -16,8 +16,11 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 # Import various configuration objects for defining the environment.
 from isaaclab.managers import EventTermCfg, SceneEntityCfg
 from isaaclab.managers import RewardTermCfg as RewTerm
-# Import the library of standard reward and MDP functions.
-import isaaclab.envs.mdp as mdp
+
+# [CORRECTED] Import both MDP modules with distinct aliases
+import isaaclab.envs.mdp as mdp_core
+import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp_loco
+
 # Chapter 7: Import the base RewardsCfg to inherit from it.
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import RewardsCfg as BaseRewardsCfg
 # Chapter 8: Curriculum Learning
@@ -36,7 +39,7 @@ from isaaclab_assets import H1_MINIMAL_CFG  # isort: skip
 
 @configclass
 class ActionsCfg:
-    """Defines the custom action model for the Go2 robot."""
+    """Defines the custom action model for the H1 robot."""
     # Action term for the custom foot-space IK controller.
     foot_ik = FootSpaceIKActionCfg(asset_name="robot", scale=0.05)
     # Explicitly link the config to its implementation class.
@@ -51,18 +54,18 @@ class ActionsCfg:
 class H1Rewards(RewardsCfg):
     """Reward terms for the MDP."""
 
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0)
+    termination_penalty = RewTerm(func=mdp_core.is_terminated, weight=-200.0)
     lin_vel_z_l2 = None
     track_lin_vel_xy_exp = RewTerm(
-        func=mdp.track_lin_vel_xy_yaw_frame_exp,
+        func=mdp_loco.track_lin_vel_xy_yaw_frame_exp,
         weight=1.0,
         params={"command_name": "base_velocity", "std": 0.5},
     )
     track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_world_exp, weight=1.0, params={"command_name": "base_velocity", "std": 0.5}
+        func=mdp_loco.track_ang_vel_z_world_exp, weight=1.0, params={"command_name": "base_velocity", "std": 0.5}
     )
     feet_air_time = RewTerm(
-        func=mdp.feet_air_time_positive_biped,
+        func=mdp_loco.feet_air_time_positive_biped,
         weight=0.25,
         params={
             "command_name": "base_velocity",
@@ -71,7 +74,7 @@ class H1Rewards(RewardsCfg):
         },
     )
     feet_slide = RewTerm(
-        func=mdp.feet_slide,
+        func=mdp_loco.feet_slide,
         weight=-0.25,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*ankle_link"),
@@ -80,21 +83,21 @@ class H1Rewards(RewardsCfg):
     )
     # Penalize ankle joint limits
     dof_pos_limits = RewTerm(
-        func=mdp.joint_pos_limits, weight=-1.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*_ankle")}
+        func=mdp_core.joint_pos_limits, weight=-1.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*_ankle")}
     )
     # Penalize deviation from default of the joints that are not essential for locomotion
     joint_deviation_hip = RewTerm(
-        func=mdp.joint_deviation_l1,
+        func=mdp_core.joint_deviation_l1,
         weight=-0.2,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw", ".*_hip_roll"])},
     )
     joint_deviation_arms = RewTerm(
-        func=mdp.joint_deviation_l1,
+        func=mdp_core.joint_deviation_l1,
         weight=-0.2,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_shoulder_.*", ".*_elbow"])},
     )
     joint_deviation_torso = RewTerm(
-        func=mdp.joint_deviation_l1, weight=-0.1, params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso")}
+        func=mdp_core.joint_deviation_l1, weight=-0.1, params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso")}
     )
 
 
@@ -124,11 +127,11 @@ class CurriculumCfg:
 @configclass
 class CommandsCfg_PLAY:
     """A special command configuration to test the policy's limits at 3.0 m/s."""
-    base_velocity = mdp.UniformVelocityCommandCfg(
+    base_velocity = mdp_loco.UniformVelocityCommandCfg(
         asset_name="robot",
         resampling_time_range=(1.0e9, 1.0e9), # Effectively never resample
         debug_vis=True,
-        ranges=mdp.UniformVelocityCommandCfg.Ranges(
+        ranges=mdp_loco.UniformVelocityCommandCfg.Ranges(
             lin_vel_x=(-1.0, 1.0),  # Force a constant forward speed of 3.0 m/s
             lin_vel_y=(0.0, 0.0),
             ang_vel_z=(0.0, 0.0)

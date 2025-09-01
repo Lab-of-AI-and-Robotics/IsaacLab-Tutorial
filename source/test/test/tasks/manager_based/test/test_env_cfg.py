@@ -27,6 +27,10 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Re
 from .curriculums import curriculum_helpers
 # Import the CurriculumTermCfg
 from isaaclab.managers import CurriculumTermCfg as CurrTerm
+# Import the actuator config instance we just created
+from .actuators.actuators_cfg import GO1_ACTUATORS_CFG
+
+
 
 #
 # -- Custom Action Configuration (from Chapter 6)
@@ -132,6 +136,12 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
         # -- Scene Settings --
         # Replace the default robot with our Unitree Go2 asset.
         self.scene.robot = UNITREE_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+
+        # -- 👇 [Chapter 9] Actuator Model Override --
+        # Replace the robot's default actuators with our custom Go1 ActuatorNet config.
+        # We use vars() to get a dictionary of attributes while keeping the values as objects.
+        self.scene.robot.actuators = vars(GO1_ACTUATORS_CFG)
+
         # Simplify the environment to a flat plane for focused, faster training.
         self.scene.terrain.terrain_type = "plane"
         self.scene.terrain.terrain_generator = None
@@ -168,7 +178,17 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
         # End the episode if the robot's base/torso touches the ground.
         self.terminations.base_contact.params["sensor_cfg"].body_names = "base"
 
-
+        # -- [VERIFICATION STEP] --
+        # 우리가 수정한 액추에이터 설정이 제대로 적용되었는지 터미널에 출력합니다.
+        print("--- Verifying Actuator Override ---")
+        print("Actuator type for 'base_legs':")
+        # 'base_legs' 그룹의 액추에이터 설정 객체의 클래스 이름을 출력합니다.
+        print(type(self.scene.robot.actuators["base_legs"]))
+        print("---------------------------------")
+        
+        # 터미널 출력을 쉽게 읽을 수 있도록 5초간 잠시 멈춥니다.
+        import time
+        time.sleep(5)
 #
 # -- Evaluation-time Configuration --
 #
@@ -176,8 +196,8 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
 @configclass
 class TestEnvCfg_PLAY(TestEnvCfg):
     """Configuration for playing and evaluating a trained policy."""
-    # Override the commands with our high-speed test version.
-    commands: CommandsCfg_PLAY = CommandsCfg_PLAY()
+    # # Override the commands with our high-speed test version.
+    # commands: CommandsCfg_PLAY = CommandsCfg_PLAY()
 
     def __post_init__(self):
         super().__post_init__()

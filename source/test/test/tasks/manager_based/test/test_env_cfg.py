@@ -23,8 +23,10 @@ import isaaclab.envs.mdp as mdp
 # Chapter 7: Import the base RewardsCfg to inherit from it.
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import RewardsCfg as BaseRewardsCfg
 # Chapter 8: Curriculum Learning
-from isaaclab.managers import CurriculumTermCfg as CurrTerm
+# Import the helpers from the new file
 from .curriculums import curriculum_helpers
+# Import the CurriculumTermCfg
+from isaaclab.managers import CurriculumTermCfg as CurrTerm
 
 #
 # -- Custom Action Configuration (from Chapter 6)
@@ -74,12 +76,16 @@ class RewardsCfg(BaseRewardsCfg):
 
 @configclass
 class CurriculumCfg:
-    """Curriculum terms for the MDP."""
-
+    """Defines the curriculum by calling the adaptive function from the helpers file."""
     command_velocity = CurrTerm(
         func=curriculum_helpers.modify_command_ranges,
         params={
-            "ranges": {"lin_vel_x": (-2.0, 2.0), "lin_vel_y": (-1.0, 1.0), "ang_vel_z": (-1.0, 1.0)}
+            # We only need to provide the FINAL target ranges.
+            "ranges": {
+                "lin_vel_x": (-2.0, 2.0),
+                "lin_vel_y": (-1.0, 1.0),
+                "ang_vel_z": (-1.0, 1.0)
+            }
         },
     )
 
@@ -89,60 +95,18 @@ class CurriculumCfg:
     #     params={},
     # )
 
-# @configclass
-# class CurriculumCfg:
-#     """Defines the curriculum for our flat-terrain task using source-verified methods."""
-#     metric = "metrics/mean_episode_length"
-#     update_period = 500
-
-#     # -- Velocity Curriculum --
-#     # The 'func' now points to our clear, named helper function.
-#     command_vel_x = CurrTerm(
-#         func=curriculum_helpers.update_linear_velocity_range, # Corrected
-#         params={
-#             "thresholds": [50, 100, 200, 300, 400],
-#             "values": [
-#                 (-0.3, 0.3), (-0.6, 0.6), (-1.0, 1.0), (-1.5, 1.5), (-2.0, 2.0),
-#             ],
-#         },
-#     )
-#     command_vel_z = CurrTerm(
-#         func=curriculum_helpers.update_angular_velocity_range, # Corrected
-#         params={
-#             "thresholds": [50, 150, 250, 350],
-#             "values": [
-#                 (-0.25, 0.25), (-0.5, 0.5), (-0.8, 0.8), (-1.0, 1.0),
-#             ],
-#         },
-#     )
-
-#     # -- Domain Randomization Curriculum --
-#     ground_friction = CurrTerm(
-#         func=curriculum_helpers.update_ground_friction, # Corrected
-#         params={
-#             "thresholds": [250, 350, 450],
-#             "values": [
-#                 (1.0, 1.0), (0.8, 1.25), (0.6, 1.5),
-#             ],
-#         },
-#     )
-
 
 @configclass
 class CommandsCfg_PLAY:
-    """
-    A special command configuration for PLAY mode.
-    It forces a constant high-speed forward velocity to test the policy's limits.
-    """
+    """A special command configuration to test the policy's limits at 3.0 m/s."""
     base_velocity = mdp.UniformVelocityCommandCfg(
         asset_name="robot",
-        # Set resampling time to a huge value to effectively never resample.
-        resampling_time_range=(1.0e9, 1.0e9),
+        resampling_time_range=(1.0e9, 1.0e9), # Effectively never resample
         debug_vis=True,
         ranges=mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(2.9, 2.9),  # Force a constant forward speed of 2.0 m/s
-            lin_vel_y=(0.0, 0.0),  # No sideways motion
-            ang_vel_z=(0.0, 0.0)   # No turning
+            lin_vel_x=(3.0, 3.0),  # Force a constant forward speed of 3.0 m/s
+            lin_vel_y=(0.0, 0.0),
+            ang_vel_z=(0.0, 0.0)
         ),
     )
 
@@ -158,7 +122,7 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
     # Override the base environment's actions and rewards with our custom classes.
     actions: ActionsCfg = ActionsCfg()
     rewards: RewardsCfg = RewardsCfg()
-    curriculum: CurriculumCfg = CurriculumCfg()
+    curriculum: CurriculumCfg = CurriculumCfg() # Activate the curriculum
 
     def __post_init__(self):
         """Post-initialization to override specific parameters."""
@@ -212,14 +176,12 @@ class TestEnvCfg(LocomotionVelocityRoughEnvCfg):
 @configclass
 class TestEnvCfg_PLAY(TestEnvCfg):
     """Configuration for playing and evaluating a trained policy."""
-
-    # [NEW] Override the commands for this specific test.
+    # Override the commands with our high-speed test version.
     commands: CommandsCfg_PLAY = CommandsCfg_PLAY()
 
     def __post_init__(self):
-        # Inherit all settings from the training config first.
         super().__post_init__()
-
+        # Disable the curriculum during play mode.
         self.curriculum = None
 
         # --- Settings to override for playing ---

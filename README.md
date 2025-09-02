@@ -36,4 +36,8 @@ Contact: [moonjihoon89@gmail.com](mailto:moonjihoon89@gmail.com)
 
 This project is licensed under the **Apache License 2.0**. Please see the [LICENSE](LICENSE) file for more details.
 
+<<<<<<< HEAD
 A significant portion of this tutorial's code is based on or adapted from the official NVIDIA Isaac Lab source code, which is released under the BSD-3-Clause license. This work would not be possible without the foundational efforts of the Isaac Lab development team.
+=======
+A significant portion of this tutorial's code is based on or adapted from the official NVIDIA Isaac Lab source code, which is released under the BSD-3-Clause license. This work would not be possible without the foundational efforts of the Isaac Lab development team.
+>>>>>>> f545bb0cb50d22adb3de27805b40a20c5f0b29d0

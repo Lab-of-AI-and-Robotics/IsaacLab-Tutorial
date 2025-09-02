@@ -6,6 +6,8 @@ An in-depth, 10-chapter tutorial on developing reinforcement learning environmen
 
 Each chapter has its own dedicated branch, allowing you to easily follow along or check out the completed code for any part of the tutorial.
 
+### **➡️ [Click here to read the full tutorial on Notion]**(https://marble-resistance-175.notion.site/A-Tutorial-on-Developing-Reinforcement-Learning-Environments-for-Legged-Robots-in-Isaac-Lab-25e59724dbdf80b5b6c6c2dbd9ea6b66)
+
 ---
 
 ## 🚀 Tutorial Chapters

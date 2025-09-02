@@ -13,15 +13,14 @@ Each chapter has its own dedicated branch, allowing you to easily follow along o
 | Chapter | Title | GitHub Branch |
 | :--- | :--- | :--- |
 | **1** | Environment Familiarization and Baseline Execution | *(Uses built-in code)* |
-| **2** | Project Scaffolding and Architectural Decisions | [`chapter-2`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-2) |
-| **3** | Anatomy of an Environment Configuration | [`chapter-3`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-3) |
-| **4** | Asset Integration and Kinematic Analysis | [`chapter-4`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-4) |
-| **5** | Implementation and Validation of Kinematics Solvers | [`chapter-5`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-5) |
-| **6** | Custom Action Integration and Stability Tuning | [`chapter-6`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-6) |
-| **7** | Advanced Reward Shaping and Configuration Workflows | [`chapter-7`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-7) |
-| **8** | Adaptive Velocity Curriculum | [`chapter-8`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-8) |
-| **9** | Bridging the Sim-to-Real Gap with ActuatorNet | [`chapter-9`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-9) |
-| **10**| From Evaluation to Humanoid Frontiers | [`chapter-10`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter-10) |
+| **2 & 3** | Project Scaffolding & Environment Anatomy | [`chapter2_3`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter2_3) |
+| **4** | Asset Integration and Kinematic Analysis | [`chapter4`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter4) |
+| **5** | Implementation and Validation of Kinematics Solvers | [`chapter5`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter5) |
+| **6** | Custom Action Integration and Stability Tuning | [`chapter6`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter6) |
+| **7** | Advanced Reward Shaping and Configuration Workflows | [`chapter7`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter7) |
+| **8** | Adaptive Velocity Curriculum | [`chapter8`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter8) |
+| **9** | Bridging the Sim-to-Real Gap with ActuatorNet | [`chapter9`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter9) |
+| **10**| From Evaluation to Humanoid Frontiers | [`chapter10`](https://github.com/Lab-of-AI-and-Robotics/IsaacLab-Tutorial/tree/chapter10) |
 
 ---
 

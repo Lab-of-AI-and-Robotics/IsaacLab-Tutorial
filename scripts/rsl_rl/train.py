@@ -15,20 +15,20 @@ from isaaclab.app import AppLauncher
 # local imports
 import cli_args  # isort: skip
 
-# prefer local vendor copy of rsl_rl if present
-import os
-vendor_path = "/home/yoda/Projects/personal_tutorial_isaaclab/test/vendor"
-if os.path.isdir(os.path.join(vendor_path, "rsl_rl")):
-    # insert at position 0 so it takes precedence over site-packages
-    import sys as _sys
-    if vendor_path not in _sys.path:
-        _sys.path.insert(0, vendor_path)
+# # prefer local vendor copy of rsl_rl if present
+# import os
+# vendor_path = "/home/yoda/Projects/personal_tutorial_isaaclab/test/vendor"
+# if os.path.isdir(os.path.join(vendor_path, "rsl_rl")):
+#     # insert at position 0 so it takes precedence over site-packages
+#     import sys as _sys
+#     if vendor_path not in _sys.path:
+#         _sys.path.insert(0, vendor_path)
 
 
-import rsl_rl, inspect
-import rsl_rl.algorithms.ppo as ppo
-print("[INFO] rsl_rl package:", rsl_rl.__file__)
-print("[INFO] ppo.py module:", inspect.getsourcefile(ppo))
+# import rsl_rl, inspect
+# import rsl_rl.algorithms.ppo as ppo
+# print("[INFO] rsl_rl package:", rsl_rl.__file__)
+# print("[INFO] ppo.py module:", inspect.getsourcefile(ppo))
 
 
 # add argparse arguments

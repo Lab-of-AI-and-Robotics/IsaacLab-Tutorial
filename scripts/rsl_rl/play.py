@@ -15,13 +15,13 @@ from isaaclab.app import AppLauncher
 # local imports
 import cli_args  # isort: skip
 
-# prefer local vendor copy of rsl_rl if present
-import os
-vendor_path = "/home/yoda/Projects/personal_tutorial_isaaclab/test/vendor"
-if os.path.isdir(os.path.join(vendor_path, "rsl_rl")):
-    import sys as _sys
-    if vendor_path not in _sys.path:
-        _sys.path.insert(0, vendor_path)
+# # prefer local vendor copy of rsl_rl if present
+# import os
+# vendor_path = "/home/yoda/Projects/personal_tutorial_isaaclab/test/vendor"
+# if os.path.isdir(os.path.join(vendor_path, "rsl_rl")):
+#     import sys as _sys
+#     if vendor_path not in _sys.path:
+#         _sys.path.insert(0, vendor_path)
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")

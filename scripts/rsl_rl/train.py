@@ -89,6 +89,37 @@ import os
 import torch
 from datetime import datetime
 
+# train.py와 play.py에 있던 기존 패치 코드를 지우고 이걸로 교체하세요.
+
+# train.py와 play.py에 있던 기존 패치 코드를 지우고 이걸로 교체하세요.
+
+# ================================================================= #
+#       NAMESPACE MONKEY-PATCHING (THE REAL FINAL SOLUTION)         #
+# ================================================================= #
+import sys
+import os
+
+# 1. custom_rsl 폴더 경로 추가
+custom_module_parent_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if custom_module_parent_path not in sys.path:
+    sys.path.append(custom_module_parent_path)
+
+# 2. 클래스가 실제로 '사용되는' 모듈과 우리의 커스텀 클래스를 import
+import rsl_rl.runners.on_policy_runner
+from custom_rsl import CustomActorCritic, CustomPPO
+
+# 3. on_policy_runner 모듈이 가지고 있는 ActorCritic과 PPO를 직접 덮어씁니다.
+#    (중앙 서류 보관소가 아닌, 직원 책상 위의 복사본을 바꿔치기하는 것과 같습니다.)
+rsl_rl.runners.on_policy_runner.ActorCritic = CustomActorCritic
+rsl_rl.runners.on_policy_runner.PPO = CustomPPO
+
+print("=" * 50)
+print("[CUSTOM] Namespace patch successful!")
+print(f"  Patched 'ActorCritic' in on_policy_runner.py -> {rsl_rl.runners.on_policy_runner.ActorCritic.__name__}")
+print(f"  Patched 'PPO' in on_policy_runner.py -> {rsl_rl.runners.on_policy_runner.PPO.__name__}")
+print("=" * 50)
+# ================================================================= #
+
 from rsl_rl.runners import OnPolicyRunner
 
 from isaaclab.envs import (
@@ -178,8 +209,16 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
+    # # create runner from rsl-rl
+    # runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+
+    # 1. CustomOnPolicyRunner를 import 해야 합니다.
+    from custom_rsl import CustomOnPolicyRunner
+
     # create runner from rsl-rl
-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    print("[CUSTOM] Instantiating CustomOnPolicyRunner...")
+    runner = CustomOnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # load the checkpoint
